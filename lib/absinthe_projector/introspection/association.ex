@@ -3,7 +3,7 @@ defmodule AbsintheProjector.Introspection.Association do
   Metadata for a single Ecto association discovered via reflection.
 
   Produced by `AbsintheProjector.Introspection` and consumed by the projection
-  engine (F02). Each entry carries only what recursion needs: the association
+  engine. Each entry carries only what recursion needs: the association
   `name`, its `kind`, and the `related` schema module to continue into.
 
   For `:through` associations, `related` is resolved to the concrete schema at

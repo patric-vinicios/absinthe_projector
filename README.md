@@ -35,7 +35,7 @@ becomes, automatically:
 [:bank, installments: [payments: [:account]]]
 ```
 
-No N+1. No overfetch. No rewriting resolvers. No spreading dataloader across your schema.
+No association N+1. No association overfetch. No rewriting resolvers. No spreading dataloader across your schema.
 
 ## Why
 

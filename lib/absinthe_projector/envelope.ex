@@ -1,7 +1,7 @@
 defmodule AbsintheProjector.Envelope do
   @moduledoc """
   Walks a projected GraphQL selection down a pagination-envelope key path,
-  returning the innermost selection that `AbsintheProjector.Engine` (F02) should
+  returning the innermost selection that `AbsintheProjector.Engine` should
   project against the declared `:schema`.
 
   A Flop-style list query wraps the real entities inside a `data` field
@@ -20,8 +20,8 @@ defmodule AbsintheProjector.Envelope do
   associations.
 
   An empty path is the no-envelope identity — the selection is returned unchanged,
-  so a field without the `envelope` option projects from its root exactly as under
-  F03. When a key matches no field at some level, the descent returns `[]`, so a
+  so a field without the `envelope` option projects from its root exactly like a
+  single-record field. When a key matches no field at some level, the descent returns `[]`, so a
   meta-only list query (only `meta { total }` requested) yields an empty preload
   tree and downstream `Repo.preload/2` stays a safe no-op.
 

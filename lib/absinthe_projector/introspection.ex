@@ -3,7 +3,7 @@ defmodule AbsintheProjector.Introspection do
   Discovers the associations of an Ecto schema through Ecto's compile-time
   reflection API — never a hand-maintained whitelist.
 
-  This module is the single source of truth the projection engine (F02) asks,
+  This module is the single source of truth the projection engine asks,
   at every recursion level: *"is this field name a real association of the
   current schema, and if so, what schema do I recurse into?"* It answers with
   zero configuration and zero drift — adding an association to a consumer schema

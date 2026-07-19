@@ -42,8 +42,8 @@ defmodule AbsintheProjector.MixProject do
 
   defp description do
     "Absinthe middleware that turns each GraphQL query's selection set into an " <>
-      "exact Ecto preload tree — no N+1, no overfetch, no dataloader spread, " <>
-      "no hand-maintained whitelists."
+      "exact Ecto preload tree — no association N+1, no association overfetch, " <>
+      "no dataloader spread, no hand-maintained whitelists."
   end
 
   defp package do

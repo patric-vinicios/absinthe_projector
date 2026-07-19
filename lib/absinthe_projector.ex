@@ -14,9 +14,9 @@ defmodule AbsintheProjector do
 
   Before the resolver runs, the middleware obtains the projected child fields via
   `Absinthe.Resolution.project/1`, feeds them plus the declared schema to
-  `AbsintheProjector.Engine.project/2` (F02), and stores the resulting nested
+  `AbsintheProjector.Engine.project/2`, and stores the resulting nested
   preload tree in `resolution.context[:absinthe_projector]`. The resolver then
-  hands that tree to its domain service (via F05's `AbsintheProjector.preloads/1`):
+  hands that tree to its domain service (via `AbsintheProjector.preloads/1`):
 
       def contact(_parent, %{id: id}, resolution) do
         preloads = AbsintheProjector.preloads(resolution)
@@ -78,6 +78,13 @@ defmodule AbsintheProjector do
 
   alias AbsintheProjector.{Engine, Envelope, Introspection}
 
+  @typedoc """
+  A nested Ecto preload tree, in the exact shape accepted by `Repo.preload/2`:
+  a list whose entries are bare association names (leaves) or
+  `{association, subtree}` pairs, e.g. `[:bank, installments: [payments: [:account]]]`.
+  """
+  @type preload_tree :: [atom() | {atom(), preload_tree()}]
+
   @context_key :absinthe_projector
 
   @missing_schema_message "AbsintheProjector requires a :schema option with the root Ecto schema module, e.g. middleware(AbsintheProjector, schema: MyApp.Contact)"
@@ -137,7 +144,7 @@ defmodule AbsintheProjector do
       iex> AbsintheProjector.preloads(%Absinthe.Resolution{context: %{}})
       []
   """
-  @spec preloads(Absinthe.Resolution.t()) :: keyword() | [atom()]
+  @spec preloads(Absinthe.Resolution.t()) :: preload_tree()
   def preloads(%Absinthe.Resolution{context: context}) do
     Map.get(context, @context_key, [])
   end
@@ -156,7 +163,7 @@ defmodule AbsintheProjector do
   def context_key, do: @context_key
 
   # Eager, fail-loud validation of the `:schema` option. A missing option raises
-  # F03's guidance message; a present-but-non-Ecto module reuses F01's single
+  # a guidance message; a present-but-non-Ecto module reuses the single
   # validation point (`Introspection.associations/1`), which raises naming the
   # offending value. Returns the validated schema module.
   defp validate_schema!(opts) do
@@ -165,16 +172,16 @@ defmodule AbsintheProjector do
         raise ArgumentError, @missing_schema_message
 
       schema ->
-        # Delegates the Ecto-schema check to F01; the associations lookup the
-        # engine repeats on the happy path is negligible under the overhead
-        # budget.
+        # Delegates the Ecto-schema check to Introspection; the associations
+        # lookup the engine repeats on the happy path is negligible under the
+        # overhead budget.
         _ = Introspection.associations(schema)
         schema
     end
   end
 
   # Eager, fail-loud normalization of the `:envelope` option into a key path for
-  # `Envelope.descend/2` (ADR-004). Runs before the errors pass-through, so a
+  # `Envelope.descend/2`. Runs before the errors pass-through, so a
   # mistyped path surfaces as a static developer error rather than a silently
   # empty preload tree:
   #

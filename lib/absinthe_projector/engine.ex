@@ -5,7 +5,7 @@ defmodule AbsintheProjector.Engine do
   Given the list of `Absinthe.Blueprint.Document.Field` nodes returned by
   `Absinthe.Resolution.project/1` and the root Ecto schema of the field, the
   engine keeps only the fields that name a real association of the current
-  schema — asking `AbsintheProjector.Introspection` (F01), never a whitelist —
+  schema — asking `AbsintheProjector.Introspection`, never a whitelist —
   recurses into each match using the association's related schema, and merges
   duplicate or aliased requests of the same association by unioning their child
   selections.
@@ -54,7 +54,7 @@ defmodule AbsintheProjector.Engine do
   associations. Raises `ArgumentError` (via `Introspection`) when `schema` is not
   an Ecto schema module.
   """
-  @spec project([struct()], module()) :: keyword() | [atom()]
+  @spec project([struct()], module()) :: AbsintheProjector.preload_tree()
   def project(fields, schema) do
     associations = Introspection.associations(schema)
 
