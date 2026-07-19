@@ -11,8 +11,7 @@
 </p>
 
 <p align="center">
-  Your GraphQL client already says exactly which associations it wants.<br>
-  Why does your resolver pretend it didn't hear?
+  Ecto preload trees derived from Absinthe selection sets.
 </p>
 
 ---
