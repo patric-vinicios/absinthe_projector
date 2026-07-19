@@ -2,7 +2,7 @@ defmodule AbsintheProjector.MixProject do
   use Mix.Project
 
   @version "0.1.0"
-  @source_url "https://github.com/patricvinicios/absinthe_projector"
+  @source_url "https://github.com/patric-vinicios/absinthe_projector"
 
   def project do
     [
