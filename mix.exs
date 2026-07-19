@@ -61,7 +61,8 @@ defmodule AbsintheProjector.MixProject do
       logo: "logo.png",
       extras: ["README.md"],
       source_ref: "v#{@version}",
-      source_url: @source_url
+      source_url: @source_url,
+      skip_code_autolink_to: ["Absinthe.Blueprint.Document.Field"]
     ]
   end
 end

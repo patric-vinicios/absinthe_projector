@@ -54,7 +54,7 @@ defmodule AbsintheProjector.Engine do
   associations. Raises `ArgumentError` (via `Introspection`) when `schema` is not
   an Ecto schema module.
   """
-  @spec project([Absinthe.Blueprint.Document.Field.t()], module()) :: keyword() | [atom()]
+  @spec project([struct()], module()) :: keyword() | [atom()]
   def project(fields, schema) do
     associations = Introspection.associations(schema)
 

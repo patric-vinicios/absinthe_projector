@@ -58,8 +58,7 @@ defmodule AbsintheProjector.Envelope do
   whose `schema_node.identifier` matches the key; returns `[]` as soon as a key
   matches no field.
   """
-  @spec descend([Absinthe.Blueprint.Document.Field.t()], [atom()]) ::
-          [Absinthe.Blueprint.Document.Field.t()]
+  @spec descend([struct()], [atom()]) :: [struct()]
   def descend(fields, []), do: fields
 
   def descend(fields, path) when is_list(path) do

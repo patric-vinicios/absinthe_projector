@@ -147,4 +147,4 @@ Absinthe compiles your schema's imported type modules into a cached blueprint; s
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](https://github.com/patric-vinicios/absinthe_projector/blob/main/LICENSE).
