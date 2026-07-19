@@ -20,10 +20,10 @@
 
 ```graphql
 {
-  contact {
-    name
-    bank { name }
-    installments { payments { account { number } } }
+  order {
+    number
+    customer { name }
+    items { product { supplier { name } } }
   }
 }
 ```
@@ -31,7 +31,7 @@
 becomes, automatically:
 
 ```elixir
-[:bank, installments: [payments: [:account]]]
+[:customer, items: [product: [:supplier]]]
 ```
 
 No association N+1. No association overfetch. No rewriting resolvers. No spreading dataloader across your schema.
@@ -72,10 +72,10 @@ Declare the middleware on a field, naming the root Ecto schema of that field's r
 
 ```elixir
 query do
-  field :contact, :contact do
+  field :order, :order do
     arg(:id, non_null(:id))
-    middleware(AbsintheProjector, schema: MyApp.Contact)
-    resolve(&Resolvers.get_contact/2)
+    middleware(AbsintheProjector, schema: MyApp.Order)
+    resolve(&Resolvers.get_order/2)
   end
 end
 ```
@@ -83,9 +83,9 @@ end
 Read the computed preload tree in the resolver and pass it down as plain data:
 
 ```elixir
-def get_contact(%{id: id}, resolution) do
+def get_order(%{id: id}, resolution) do
   preloads = AbsintheProjector.preloads(resolution)
-  Contacts.get(id, preloads)
+  Orders.get(id, preloads)
 end
 ```
 
@@ -93,9 +93,9 @@ Your domain code stays Absinthe-free — the tree is an ordinary keyword list th
 
 ```elixir
 def get(id, preloads \\ []) do
-  case Repo.get(Contact, id) do
+  case Repo.get(Order, id) do
     nil -> {:error, :not_found}
-    contact -> {:ok, Repo.preload(contact, preloads)}
+    order -> {:ok, Repo.preload(order, preloads)}
   end
 end
 ```
@@ -107,9 +107,9 @@ That's the whole integration. Scalar fields, `__typename`, aliases, fragments an
 List fields that wrap entities in a pagination envelope ([Flop](https://hexdocs.pm/flop)'s `data`, or a custom `page { entries }`) declare where the entities live with `:envelope`:
 
 ```elixir
-field :contacts, :contact_page do
-  middleware(AbsintheProjector, schema: MyApp.Contact, envelope: :data)
-  resolve(&Resolvers.list_contacts/2)
+field :orders, :order_page do
+  middleware(AbsintheProjector, schema: MyApp.Order, envelope: :data)
+  resolve(&Resolvers.list_orders/2)
 end
 ```
 

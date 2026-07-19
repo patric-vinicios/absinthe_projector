@@ -24,23 +24,23 @@ defmodule AbsintheProjector.Engine do
 
   Flat selection (scalars dropped, association-less children collapse to a leaf):
 
-      # contact { name age bank { name } }
-      project(fields, Contact) #=> [:bank]
+      # order { number status customer { name } }
+      project(fields, Order) #=> [:customer]
 
   Nested selection:
 
-      # contact { bank { name } installments { payments { account { number } } } }
-      project(fields, Contact) #=> [:bank, installments: [payments: [:account]]]
+      # order { customer { name } items { product { supplier { name } } } }
+      project(fields, Order) #=> [:customer, items: [product: [:supplier]]]
 
   Aliased duplicates merge into one entry with the union of their children:
 
-      # inst: installments { payments }  dup: installments { }
-      project(fields, Contact) #=> [installments: [:payments]]
+      # a: items { product }  b: items { }
+      project(fields, Order) #=> [items: [:product]]
 
   A selection with no associations yields an empty, no-op tree:
 
-      # contact { name age }
-      project(fields, Contact) #=> []
+      # order { number status }
+      project(fields, Order) #=> []
   """
 
   alias AbsintheProjector.Introspection

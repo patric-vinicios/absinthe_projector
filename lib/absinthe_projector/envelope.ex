@@ -31,13 +31,13 @@ defmodule AbsintheProjector.Envelope do
 
   Single-level Flop envelope (only `data`'s selection survives):
 
-      # data { bank { name } } meta { total }
-      descend(fields, [:data]) #=> [ %Field{schema_node: %{identifier: :bank}, …} ]
+      # data { customer { name } } meta { total }
+      descend(fields, [:data]) #=> [ %Field{schema_node: %{identifier: :customer}, …} ]
 
   Multi-level envelope descends every level in order:
 
-      # page { entries { bank } }
-      descend(fields, [:page, :entries]) #=> [ %Field{… :bank …} ]
+      # page { entries { customer } }
+      descend(fields, [:page, :entries]) #=> [ %Field{… :customer …} ]
 
   Missing envelope field yields an empty selection:
 

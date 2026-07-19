@@ -6,9 +6,9 @@ defmodule AbsintheProjector do
   Declare it per field, naming the root Ecto schema of the field's return type:
 
       query do
-        field :contact, :contact do
-          middleware(AbsintheProjector, schema: MyApp.Contact)
-          resolve(&Resolvers.contact/3)
+        field :order, :order do
+          middleware(AbsintheProjector, schema: MyApp.Order)
+          resolve(&Resolvers.order/3)
         end
       end
 
@@ -18,9 +18,9 @@ defmodule AbsintheProjector do
   preload tree in `resolution.context[:absinthe_projector]`. The resolver then
   hands that tree to its domain service (via `AbsintheProjector.preloads/1`):
 
-      def contact(_parent, %{id: id}, resolution) do
+      def order(_parent, %{id: id}, resolution) do
         preloads = AbsintheProjector.preloads(resolution)
-        {:ok, Contacts.get_contact!(id, preloads)}
+        {:ok, Orders.get_order!(id, preloads)}
       end
 
   The middleware behaves identically on query and mutation fields, and is
@@ -33,9 +33,9 @@ defmodule AbsintheProjector do
   multi-level `page { entries }`) add the opt-in `:envelope` option so projection
   starts inside that wrapper instead of at the field root:
 
-      field :contacts, :contact_page do
-        middleware(AbsintheProjector, schema: MyApp.Contact, envelope: :data)
-        resolve(&Resolvers.list_contacts/3)
+      field :orders, :order_page do
+        middleware(AbsintheProjector, schema: MyApp.Order, envelope: :data)
+        resolve(&Resolvers.list_orders/3)
       end
 
   `:envelope` accepts a single atom (`:data`), a list of atoms
@@ -81,13 +81,13 @@ defmodule AbsintheProjector do
   @typedoc """
   A nested Ecto preload tree, in the exact shape accepted by `Repo.preload/2`:
   a list whose entries are bare association names (leaves) or
-  `{association, subtree}` pairs, e.g. `[:bank, installments: [payments: [:account]]]`.
+  `{association, subtree}` pairs, e.g. `[:customer, items: [product: [:supplier]]]`.
   """
   @type preload_tree :: [atom() | {atom(), preload_tree()}]
 
   @context_key :absinthe_projector
 
-  @missing_schema_message "AbsintheProjector requires a :schema option with the root Ecto schema module, e.g. middleware(AbsintheProjector, schema: MyApp.Contact)"
+  @missing_schema_message "AbsintheProjector requires a :schema option with the root Ecto schema module, e.g. middleware(AbsintheProjector, schema: MyApp.Order)"
 
   @doc """
   Middleware entry point. See the module documentation for the full contract.
@@ -125,9 +125,9 @@ defmodule AbsintheProjector do
   unmodified — ready to pass straight to `Repo.preload/2` or an Ecto
   `preload(^tree)` composition:
 
-      def contact(_parent, %{id: id}, resolution) do
+      def order(_parent, %{id: id}, resolution) do
         preloads = AbsintheProjector.preloads(resolution)
-        {:ok, Contacts.get_contact!(id, preloads)}
+        {:ok, Orders.get_order!(id, preloads)}
       end
 
   When the middleware never ran on this field (the context key is absent), it
@@ -137,9 +137,9 @@ defmodule AbsintheProjector do
   selection with no associations, never `nil`), the result is always a valid,
   safe-no-op argument to `Repo.preload/2`.
 
-      iex> resolution = %Absinthe.Resolution{context: %{absinthe_projector: [:bank]}}
+      iex> resolution = %Absinthe.Resolution{context: %{absinthe_projector: [:customer]}}
       iex> AbsintheProjector.preloads(resolution)
-      [:bank]
+      [:customer]
 
       iex> AbsintheProjector.preloads(%Absinthe.Resolution{context: %{}})
       []

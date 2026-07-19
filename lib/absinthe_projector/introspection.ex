@@ -15,10 +15,10 @@ defmodule AbsintheProjector.Introspection do
 
   ## Example
 
-      iex> AbsintheProjector.Introspection.associations(MyApp.Contact)
+      iex> AbsintheProjector.Introspection.associations(MyApp.Order)
       %{
-        bank: %AbsintheProjector.Introspection.Association{
-          name: :bank, kind: :belongs_to, related: MyApp.Bank
+        customer: %AbsintheProjector.Introspection.Association{
+          name: :customer, kind: :belongs_to, related: MyApp.Customer
         },
         # ...
       }
