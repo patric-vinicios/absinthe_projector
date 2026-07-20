@@ -117,12 +117,18 @@ end
 
 ## How it works
 
-1. `Absinthe.Resolution.project/1` gives the middleware the client's selection set, already normalized — fragments expanded, `@skip`/`@include` applied, each field carrying its schema identifier.
+1. The middleware applies Absinthe's projection API at every level of the client's selection set. This expands fragments, applies `@skip`/`@include`, merges repeated fields, and attaches schema identifiers recursively instead of assuming the first projection normalized the whole tree.
 2. The optional envelope path is descended structurally.
 3. The engine walks the selection recursively, asking Ecto's reflection API at every level: *is this field a real association, and which schema do I recurse into?* — including `has_through` chains. Adding an association to a schema makes it projectable automatically; there is no whitelist to maintain, so there is no whitelist to drift.
 4. The resulting tree is stored on `resolution.context`; `AbsintheProjector.preloads/1` reads it back (`[]` when the middleware didn't run, so shared resolver helpers can call it unconditionally).
 
 Everything is pure: no process state, no database access, no configuration.
+
+### Interfaces and unions
+
+The projected path must use concrete GraphQL object types. `AbsintheProjector` raises before the resolver runs when it encounters an interface or union at the middleware field, in an envelope component, or in a nested Ecto association being projected. Abstract GraphQL fields that are not Ecto associations remain ignored like any other non-association field.
+
+Middleware runs before the resolver has returned a value, so it cannot select the concrete member of an abstract type. Heterogeneous results would also need separate preload plans for separate Ecto schemas, which is a different contract from the single exact tree returned by `preloads/1`. Attach the middleware to a concrete field, or handle type-specific loading in the abstract field's resolver.
 
 ### Fail-loud by design
 
@@ -130,7 +136,8 @@ Static misconfiguration surfaces immediately instead of degrading into an empty 
 
 - missing `:schema` → `ArgumentError` with usage guidance;
 - `:schema` that isn't an Ecto schema module → `ArgumentError` naming the module;
-- malformed `:envelope` → `ArgumentError` naming the value.
+- malformed `:envelope` → `ArgumentError` naming the value;
+- interface or union in the projected path → `ArgumentError` naming the abstract type and field path.
 
 A resolution that already carries errors passes through untouched — upstream failures are never masked.
 

@@ -2,13 +2,12 @@ defmodule AbsintheProjector.Engine do
   @moduledoc """
   Turns a projected GraphQL selection set into an exact `Repo.preload/2` tree.
 
-  Given the list of `Absinthe.Blueprint.Document.Field` nodes returned by
-  `Absinthe.Resolution.project/1` and the root Ecto schema of the field, the
-  engine keeps only the fields that name a real association of the current
-  schema — asking `AbsintheProjector.Introspection`, never a whitelist —
-  recurses into each match using the association's related schema, and merges
-  duplicate or aliased requests of the same association by unioning their child
-  selections.
+  Given a recursively normalized list of `Absinthe.Blueprint.Document.Field`
+  nodes and the root Ecto schema of the field, the engine keeps only the fields
+  that name a real association of the current schema — asking
+  `AbsintheProjector.Introspection`, never a whitelist — recurses into each match
+  using the association's related schema, and merges duplicate or aliased
+  requests of the same association by unioning their child selections.
 
   Association matching keys on `schema_node.identifier` (the schema field atom),
   so GraphQL aliases and repeated fields collapse to a single entry. Scalar

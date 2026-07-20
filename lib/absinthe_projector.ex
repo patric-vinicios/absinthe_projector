@@ -12,11 +12,12 @@ defmodule AbsintheProjector do
         end
       end
 
-  Before the resolver runs, the middleware obtains the projected child fields via
-  `Absinthe.Resolution.project/1`, feeds them plus the declared schema to
-  `AbsintheProjector.Engine.project/2`, and stores the resulting nested
-  preload tree in `resolution.context[:absinthe_projector]`. The resolver then
-  hands that tree to its domain service (via `AbsintheProjector.preloads/1`):
+  Before the resolver runs, the middleware normalizes every level of the child
+  selection through Absinthe's projection API, feeds the resulting field tree
+  plus the declared schema to `AbsintheProjector.Engine.project/2`, and stores
+  the nested preload tree in `resolution.context[:absinthe_projector]`. The
+  resolver then hands that tree to its domain service (via
+  `AbsintheProjector.preloads/1`):
 
       def order(_parent, %{id: id}, resolution) do
         preloads = AbsintheProjector.preloads(resolution)
@@ -47,6 +48,20 @@ defmodule AbsintheProjector do
   key, tree format, error pass-through, idempotency — is identical to a
   single-record field.
 
+  ## Abstract GraphQL types
+
+  The projected path must consist of concrete GraphQL object types. Interfaces
+  and unions are rejected with `ArgumentError` before the resolver runs when they
+  appear at the middleware field, in an envelope component, or in an Ecto
+  association being projected.
+
+  This is intentional: middleware executes before the resolver has produced a
+  value, so it cannot know which concrete member of an interface or union will be
+  returned. A heterogeneous result would require one preload plan per concrete
+  Ecto schema rather than the single exact tree returned by `preloads/1`. Attach
+  the middleware to a concrete field instead, or perform type-specific loading in
+  the resolver for that abstract field.
+
   ## Validation
 
   The `:schema` option is validated eagerly and fail-loud at the top of `call/2`,
@@ -59,7 +74,9 @@ defmodule AbsintheProjector do
       validation point);
     * an `:envelope` value that is neither an atom, `nil`, nor a list of atoms
       raises `ArgumentError` naming the received value, so a mistyped envelope
-      path never silently degrades to an empty preload tree.
+      path never silently degrades to an empty preload tree;
+    * an interface or union anywhere in the projected path raises
+      `ArgumentError`, because there is no concrete type before the resolver runs.
 
   ## Error pass-through
 
@@ -76,7 +93,7 @@ defmodule AbsintheProjector do
 
   @behaviour Absinthe.Middleware
 
-  alias AbsintheProjector.{Engine, Envelope, Introspection}
+  alias AbsintheProjector.{Engine, Introspection, Normalizer}
 
   @typedoc """
   A nested Ecto preload tree, in the exact shape accepted by `Repo.preload/2`:
@@ -93,8 +110,8 @@ defmodule AbsintheProjector do
   Middleware entry point. See the module documentation for the full contract.
 
   Validates the `:schema` option eagerly, passes an already-errored resolution
-  through untouched, and otherwise stores the projected preload tree under the
-  `#{inspect(@context_key)}` context key.
+  through untouched, and otherwise recursively normalizes and stores the
+  projected preload tree under the `#{inspect(@context_key)}` context key.
   """
   @impl Absinthe.Middleware
   @spec call(Absinthe.Resolution.t(), keyword()) :: Absinthe.Resolution.t()
@@ -106,8 +123,7 @@ defmodule AbsintheProjector do
       [] ->
         tree =
           resolution
-          |> Absinthe.Resolution.project()
-          |> Envelope.descend(envelope_path)
+          |> Normalizer.normalize(schema, envelope_path)
           |> Engine.project(schema)
 
         %{resolution | context: Map.put(resolution.context, @context_key, tree)}
